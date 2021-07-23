@@ -17,6 +17,7 @@ import re
 import sys
 from typing import Union
 
+from . import __version__
 from pySMART import DeviceList, Device
 from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, StateSetMetricFamily
 
@@ -74,6 +75,8 @@ class PySMARTCollector(object):
             default=False,
             help='Silence any error messages and warnings'
         )
+        parser.add_argument('-v', '--version', action='version',
+                            version='%(prog)s ' + __version__)
         arguments = parser.parse_args(args)
         if arguments.quiet:
             logging.getLogger().setLevel(100)
