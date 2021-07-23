@@ -81,10 +81,6 @@ class PySMARTCollector(object):
             logging.error('Oneshot has to be used with textfile mode')
             parser.print_help()
             sys.exit(1)
-        if arguments.interval and not arguments.textfile_name:
-            logging.error('Interval has to be used with textfile mode')
-            parser.print_help()
-            sys.exit(1)
         self.args = vars(arguments)
 
     def add_metric(self, gauges, disk: Device, name: str, value: Union[int, str] = 1, description: str = None, labels={}, type='gauge'):
