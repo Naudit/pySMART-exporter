@@ -25,7 +25,7 @@ if __name__ == '__main__':
         prometheus_client.start_http_server(port=int(port),
                                             addr=ip, registry=registry)
         while True:
-            time.sleep(args.get('interval', 3600))
+            time.sleep(3600)
 
     if args['textfile_name']:
         while True:

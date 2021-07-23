@@ -54,8 +54,9 @@ class PySMARTCollector(object):
             '--interval',
             dest='interval',
             type=int,
+            default=60,
             help=(
-                'Number of seconds between updates of the textfile. Default is 5 seconds')
+                'Number of seconds between updates of the textfile. Defaults 60 seconds.')
         )
         parser.add_argument(
             '-1',
