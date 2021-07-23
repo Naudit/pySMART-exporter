@@ -63,9 +63,7 @@ Installation
 
     python -m pip install pySMART-exporter
 
-The only external dependency is the ``smartctl`` component of the smartmontools
-package.  This should be pre-installed in most Linux distributions, or it
-can be obtained through your package manager.  Likely one of the following::
+The only external (non-python) dependency is the ``smartctl`` component of the smartmontools package.  This should be pre-installed in most Linux distributions, or it can be obtained through your package manager.  Likely one of the following::
 
     apt-get install smartmontools
         or
