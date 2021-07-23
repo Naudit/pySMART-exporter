@@ -83,4 +83,9 @@ setup(name='pySMART-exporter',
       install_requires=REQUIREMENTS,
       long_description=get_long_description(),
       long_description_content_type='text/markdown',
-      classifiers=CLASSIFIERS,)
+      classifiers=CLASSIFIERS,
+      entry_points={
+          'console_scripts': [
+              'pysmart-exporter=pysmart_exporter.__main__:main',
+          ]},
+      )

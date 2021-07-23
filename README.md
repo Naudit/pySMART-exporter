@@ -21,7 +21,7 @@ Server mode
 -----------
 To Use the exporter in server mode you can simply run as
 
-`python3 -m pysmart_exporter -l 0.0.0.0:9099`
+`pysmart_exporter -l 0.0.0.0:9099`
 
 And configure your prometheus to access it.
 
@@ -29,7 +29,7 @@ File mode
 ---------
 If you whish to generate just a metric sample, you can run this:
 
-`python3 -m pysmart_exporter -f out.txt -1`
+`pysmart_exporter -f out.txt -1`
 
 It may generate a file with a similar content as:
 

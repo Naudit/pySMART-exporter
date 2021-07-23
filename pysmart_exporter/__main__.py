@@ -14,8 +14,14 @@ from pysmart_exporter.collector import PySMARTCollector
 import time
 import sys
 
-if __name__ == '__main__':
-    collector = PySMARTCollector(prog='python3 -m pysmart_exporter')
+
+def main():
+    if '__main__' in sys.argv[0]:
+        prog = 'python3 -m pysmart_exporter'
+    else:
+        prog = None
+
+    collector = PySMARTCollector(prog=prog)
     registry = prometheus_client.CollectorRegistry()
     registry.register(collector)
     args = collector.args
@@ -35,3 +41,7 @@ if __name__ == '__main__':
             if collector.args['oneshot']:
                 sys.exit(0)
             time.sleep(args.get('interval', 60))
+
+
+if __name__ == '__main__':
+    main()
