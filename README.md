@@ -11,7 +11,7 @@ pySMART-exporter
 
 Copyright (C) 2021 Naudit HPCN S.L.
 
-PySMART-exporter is a simple Python prometheys exporter build on top of [PySMART library](https://github.com/truenas/py-SMART).
+PySMART-exporter is a simple Python prometheus exporter build on top of [PySMART library](https://github.com/truenas/py-SMART).
 
 
 Usage
