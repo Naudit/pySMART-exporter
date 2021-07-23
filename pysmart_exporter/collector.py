@@ -1,0 +1,242 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2021 Rafael Leira
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+#
+################################################################
+"""Collect pysmart metrics,publish them via http or save them to a file.
+This code is inspired on https://github.com/Showmax/prometheus-ethtool-exporter as base
+"""
+import argparse
+import logging
+import re
+import sys
+from typing import Union
+
+from pySMART import DeviceList, Device
+from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, StateSetMetricFamily
+
+
+class PySMARTCollector(object):
+    """Collect smartctl metrics using pySMART and publish them via http or save them to a file."""
+
+    def __init__(self, args=None):
+        """Construct the PySMARTCollector object and parse the arguments."""
+        self.args = None
+
+        if not args:
+            args = sys.argv[1:]
+
+        self._parse_args(args)
+
+    def _parse_args(self, args):
+        """Parse CLI args and set them to self.args."""
+        parser = argparse.ArgumentParser()
+        group = parser.add_mutually_exclusive_group(required=True)
+        group.add_argument(
+            '-f',
+            '--textfile-name',
+            dest='textfile_name',
+            help=('Full file path where to store data for node collector to pick up')
+        )
+        group.add_argument(
+            '-l',
+            '--listen',
+            dest='listen',
+            help='Listen host:port, i.e. 0.0.0.0:9417'
+        )
+        parser.add_argument(
+            '-i',
+            '--interval',
+            dest='interval',
+            type=int,
+            help=(
+                'Number of seconds between updates of the textfile. Default is 5 seconds')
+        )
+        parser.add_argument(
+            '-1',
+            '--oneshot',
+            dest='oneshot',
+            action='store_true',
+            default=False,
+            help='Run only once and exit. Useful for running in a cronjob'
+        )
+        parser.add_argument(
+            '-q',
+            '--quiet',
+            dest='quiet',
+            action='store_true',
+            default=False,
+            help='Silence any error messages and warnings'
+        )
+        arguments = parser.parse_args(args)
+        if arguments.quiet:
+            logging.getLogger().setLevel(100)
+        if arguments.oneshot and not arguments.textfile_name:
+            logging.error('Oneshot has to be used with textfile mode')
+            parser.print_help()
+            sys.exit(1)
+        if arguments.interval and not arguments.textfile_name:
+            logging.error('Interval has to be used with textfile mode')
+            parser.print_help()
+            sys.exit(1)
+        self.args = vars(arguments)
+
+    def add_metric(self, gauges, disk: Device, name: str, value: Union[int, str] = 1, description: str = None, labels={}, type='gauge'):
+        """Adds a metric to the gauges list
+
+        Args:
+            gauges (List): The list of metrics
+            disk (Device): A disk object
+            name (str): The name of the metric to be added
+            value (Union[int, str], optional): The value of the metric. Defaults to 1.
+            description (str, optional): A custom description for the metric. Defaults to None.
+            labels (dict, optional): A custom dict of labels. Defaults to {}.
+            type (str, optional): The metric type. Can be: 'info', 'state' or 'gauge'. Defaults to 'gauge'.
+        """
+
+        if 'device' not in labels:
+            labels['device'] = disk.name
+
+        if name not in gauges:
+            if description is None:
+                description = 'PySMART metric ' + name
+
+            if type == 'info':
+                gauges[name] = InfoMetricFamily(
+                    'pysmart', description, labels=labels.keys())
+            elif type == 'state':
+                gauges[name] = StateSetMetricFamily(
+                    'pysmart_' + name, description, labels=labels.keys())
+            else:
+                gauges[name] = GaugeMetricFamily(
+                    'pysmart_' + name, description, labels=labels.keys())
+
+        if type == 'info':
+            gauges[name].add_metric(labels.values(), labels)
+        elif type == 'state':
+            gauges[name].add_metric(labels.values(), value)
+        else:
+            gauges[name].add_metric(labels.values(), value)
+
+    def update_pysmart_stats(self, disk: Device, gauges):
+        """Update gauge with statistics from pySmart."""
+
+        # Common labels
+        common_labels = {
+            'device': disk.name,
+            'interface': disk.interface,
+        }
+
+        if 'megaraid,' in disk.interface:
+            try:
+                common_labels['raid_id'] = re.match(
+                    '.*megaraid,(\d+)', disk.interface).groups()[0]
+            except:
+                pass
+
+        # Check for raid
+
+        # Info
+        info_labels = {
+            'interface': disk.interface,
+            'model': disk.model,
+            'rotation': str(disk.rotation_rate),
+            'serial': disk.serial,
+            'size_raw': disk.size_raw,
+            'size': str(disk.size),
+            'ssd': str(disk.is_ssd),
+            'firmware': disk.firmware,
+            'smart_capable': str(disk.smart_capable),
+            'smart_enabled': str(disk.smart_enabled),
+            **common_labels
+        }
+        self.add_metric(gauges, disk, 'info', 1,
+                        labels=info_labels, type='info')
+
+        # Assessment / Disk state
+        if disk.assessment is not None:
+            self.add_metric(gauges, disk, 'assessment',
+                            {disk.assessment: True}, labels=common_labels, type='state')
+
+        # Temperature
+        if disk.temperature is not None:
+            self.add_metric(gauges, disk, 'temperature',
+                            disk.temperature, labels=common_labels)
+
+        # Size
+        if disk.size is not None:
+            self.add_metric(gauges, disk, 'size',
+                            disk.size, labels=common_labels)
+
+        #### Old Attributes ####
+        for attribute in disk.attributes:
+            if attribute is not None:
+                attribute_labels = {
+                    'num': str(attribute.num),
+                    'name': attribute.name,
+                    'flags': str(attribute.flags),
+                    'type': attribute.type,
+                    'updated': attribute.updated,
+                    'whenfailed': attribute.when_failed,
+                    **common_labels
+                }
+
+                self.add_metric(gauges, disk, 'attribute_value',
+                                attribute.value_int, labels=attribute_labels)
+                self.add_metric(gauges, disk, 'attribute_thresh',
+                                attribute.thresh, labels=attribute_labels)
+                self.add_metric(gauges, disk, 'attribute_worst',
+                                attribute.worst, labels=attribute_labels)
+                if attribute.raw_int is not None:
+                    self.add_metric(gauges, disk, 'attribute_raw',
+                                    attribute.raw_int, labels=attribute_labels)
+
+        #### Tests ####
+        # Supported test types
+        self.add_metric(gauges, disk, 'test_capabilities',
+                        disk.test_capabilities, labels=common_labels, type='state')
+        for test in disk.tests:
+            test_labels = {
+                'num': str(test.num),
+                'hours': test.hours,
+                'type': test.type,
+                'status': test.status,
+                'LBA': test.LBA,
+                **common_labels
+            }
+
+            if test.segment is not None:
+                test_labels['segment'] = test.segment
+            if test.remain is not None:
+                test_labels['remain'] = test.remain
+            if test.sense is not None:
+                test_labels['sense'] = test.sense
+            if test.ASC is not None:
+                test_labels['ASC'] = test.ASC
+            if test.ASCQ is not None:
+                test_labels['ASCQ'] = test.ASCQ
+
+            self.add_metric(gauges, disk, 'test', 1, labels=test_labels)
+
+    def collect(self):
+        """
+        Collect the metrics.
+
+        Collect the metrics and yield them. Prometheus client library
+        uses this method to respond to http queries or save them to disk.
+        """
+        gauges = {}
+
+        for disk in DeviceList():
+            try:
+                self.update_pysmart_stats(disk, gauges)
+            except Exception as e:
+                logging.exception(
+                    f"An error occurred while updating pysmart stats for {disk}")
+
+        return gauges.values()
