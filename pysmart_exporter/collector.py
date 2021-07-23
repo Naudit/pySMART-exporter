@@ -25,18 +25,18 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, StateSet
 class PySMARTCollector(object):
     """Collect smartctl metrics using pySMART and publish them via http or save them to a file."""
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, prog=None):
         """Construct the PySMARTCollector object and parse the arguments."""
         self.args = None
 
         if not args:
             args = sys.argv[1:]
 
-        self._parse_args(args)
+        self._parse_args(args, prog)
 
-    def _parse_args(self, args):
+    def _parse_args(self, args, prog=None):
         """Parse CLI args and set them to self.args."""
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(prog=prog)
         group = parser.add_mutually_exclusive_group(required=True)
         group.add_argument(
             '-f',

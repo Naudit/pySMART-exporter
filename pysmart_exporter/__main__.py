@@ -15,7 +15,7 @@ import time
 import sys
 
 if __name__ == '__main__':
-    collector = PySMARTCollector()
+    collector = PySMARTCollector(prog='python3 -m pysmart_exporter')
     registry = prometheus_client.CollectorRegistry()
     registry.register(collector)
     args = collector.args
