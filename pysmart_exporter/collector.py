@@ -200,6 +200,19 @@ class PySMARTCollector(object):
                     self.add_metric(gauges, disk, 'attribute_raw',
                                     attribute.raw_int, labels=attribute_labels)
 
+        #### New Attributes ####
+        for diag in vars(disk.diagnostics):
+            diag_labels = {
+                **common_labels
+            }
+
+            # Set to -1 if undefined/None
+            diag_value = -1 if getattr(disk.diagnostics, diag) is None else getattr(
+                disk.diagnostics, diag)
+
+            self.add_metric(gauges, disk, 'diagnostics_' +
+                            diag, diag_value, labels=diag_labels)
+
         #### Tests ####
         # Supported test types
         self.add_metric(gauges, disk, 'test_capabilities',
