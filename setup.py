@@ -56,7 +56,7 @@ def get_long_description():
 
 REQUIREMENTS = [
     'prometheus-client',
-    'pySMART',
+    'pySMART (>=1.1.0)',
 ]
 
 CLASSIFIERS = [
