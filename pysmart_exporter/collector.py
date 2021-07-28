@@ -102,6 +102,14 @@ class PySMARTCollector(object):
         if 'device' not in labels:
             labels['device'] = disk.name
 
+        # Fix labels
+        if type == 'state':
+            # raid_id must be present always in case there is at least 1 raid
+            # This is a prometheus_cli lib limitation
+            if 'raid_id' not in labels:
+                labels['raid_id'] = 'N/A'
+
+        # Add gauges
         if name not in gauges:
             if description is None:
                 description = 'PySMART metric ' + name
@@ -116,6 +124,7 @@ class PySMARTCollector(object):
                 gauges[name] = GaugeMetricFamily(
                     'pysmart_' + name, description, labels=labels.keys())
 
+        # Add values
         if type == 'info':
             gauges[name].add_metric(labels.values(), labels)
         elif type == 'state':
