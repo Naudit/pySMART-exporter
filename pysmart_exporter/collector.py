@@ -169,12 +169,8 @@ class PySMARTCollector(object):
 
         # Assessment / Disk state
         if disk.assessment is not None:
-            # Ensure at least both values are defined
-            assesment = {'PASS': False, 'FAIL': False}
-            assesment[disk.assessment] = True
-
-            self.add_metric(gauges, disk, 'assessment',
-                            assesment, labels=common_labels, type='state')
+            self.add_metric(gauges, disk, 'assessment_passed',
+                            1 if disk.assessment == 'PASS' else 0, labels=common_labels)
 
         # Temperature
         if disk.temperature is not None:
