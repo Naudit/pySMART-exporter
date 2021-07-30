@@ -124,6 +124,10 @@ class PySMARTCollector(object):
                 gauges[name] = GaugeMetricFamily(
                     'pysmart_' + name, description, labels=labels.keys())
 
+        for k in labels.keys():
+            if labels[k] is None:
+                labels[k] = "N/A"
+
         # Add values
         if type == 'info':
             gauges[name].add_metric(labels.values(), labels)
