@@ -155,15 +155,17 @@ class PySMARTCollector(object):
         # Check for raid
 
         # Info
+        # All label values should be strings, even if they are None.
+        # Force them all through the str() call
         info_labels = {
-            'interface': disk.interface,
-            'model': disk.model,
+            'interface': str(disk.interface),
+            'model': str(disk.model),
             'rotation': str(disk.rotation_rate),
-            'serial': disk.serial,
-            'size_raw': disk.size_raw,
+            'serial': str(disk.serial),
+            'size_raw': str(disk.size_raw),
             'size': str(disk.size),
             'ssd': str(disk.is_ssd),
-            'firmware': disk.firmware,
+            'firmware': str(disk.firmware),
             'smart_capable': str(disk.smart_capable),
             'smart_enabled': str(disk.smart_enabled),
             **common_labels
