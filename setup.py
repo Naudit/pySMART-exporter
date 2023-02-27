@@ -56,11 +56,11 @@ def get_long_description():
 
 REQUIREMENTS = [
     'prometheus-client',
-    'pySMART (>=1.1.0)',
+    'pySMART (>=1.2.3)',
 ]
 
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',
     'Intended Audience :: System Administrators',
     'License :: OSI Approved :: BSD License',
