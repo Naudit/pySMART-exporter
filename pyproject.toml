@@ -12,6 +12,10 @@
 requires = ["setuptools>=61.0", "setuptools-scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools_scm]
+write_to = "pysmart_exporter/version.py"
+local_scheme = "no-local-version"
+
 [project]
 name = "pySMART-exporter"
 description = "A Prometheus PySMART exporter"
@@ -43,6 +47,3 @@ homepage = "https://repo1.naudit.es/theseus/pysmart-exporter"
 
 [project.entry-points."console_scripts"]
 pysmart_exporter = "pysmart_exporter.__main__:main"
-
-[tool.setuptools.dynamic]
-version = { attr = "pysmart_exporter.__version__" }

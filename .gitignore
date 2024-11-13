@@ -8,3 +8,6 @@ build/
 dist/
 docs
 venv
+
+# local version
+pysmart_exporter/version.py
