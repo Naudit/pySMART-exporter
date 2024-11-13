@@ -17,15 +17,10 @@ name = "pySMART-exporter"
 description = "A Prometheus PySMART exporter"
 readme = "README.md"
 keywords = ["prometheus", "SMART", "exporter", "monitoring"]
-license = {text = "BSD-3-Clause"}
-dependencies = [
-    "prometheus-client",
-    "pySMART >=1.1.0"
-]
+license = { text = "BSD-3-Clause" }
+dependencies = ["prometheus-client", "pySMART >=1.1.0"]
 dynamic = ["version"]
-authors = [
-    { name = "Rafael Leira", email = "rafael.leira@naudit.es" }
-]
+authors = [{ name = "Rafael Leira", email = "rafael.leira@naudit.es" }]
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -37,8 +32,11 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.optional-dependencies]
+dev = ['pytest', 'pytest-cov', 'mypy', 'types-tabulate', 'types-six', 'pdoc']
 
 [project.urls]
 homepage = "https://repo1.naudit.es/theseus/pysmart-exporter"
@@ -47,4 +45,4 @@ homepage = "https://repo1.naudit.es/theseus/pysmart-exporter"
 pysmart_exporter = "pysmart_exporter.__main__:main"
 
 [tool.setuptools.dynamic]
-version = {attr = "pysmart_exporter.__version__"}
+version = { attr = "pysmart_exporter.__version__" }

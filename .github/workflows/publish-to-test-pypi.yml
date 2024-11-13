@@ -3,30 +3,27 @@ on: push
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@master
         with:
           fetch-depth: 0
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
-
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+          python-version: "3.10"
 
       - name: Install pypa/build
         run: |
           pip install build --user 
-          pip install .  
+          pip install .
       - name: Install pypa/pdoc
         run: >-
           python -m
           pip install
-          pdoc
+          .[dev]
           --user
       - name: Generate documentation with pdoc
         run: python -m pdoc -o docs -n pysmart_exporter
@@ -39,10 +36,11 @@ jobs:
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository_url: https://test.pypi.org/legacy/
-          extra-args: --verbose
+          verbose: true
+          skip-existing: true
 
       - name: Publish distribution 📦 to PyPI
-        if: startsWith(github.ref, 'refs/tags')
+        if: startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
