@@ -11,6 +11,7 @@
 """Collect pysmart metrics,publish them via http or save them to a file.
 This code is inspired on https://github.com/Showmax/prometheus-ethtool-exporter as base
 """
+
 import argparse
 import logging
 import re
@@ -38,45 +39,21 @@ class PySMARTCollector(object):
         """Parse CLI args and set them to self.args."""
         parser = argparse.ArgumentParser(prog=prog)
         group = parser.add_mutually_exclusive_group(required=True)
-        group.add_argument(
-            '-f',
-            '--textfile-name',
-            dest='textfile_name',
-            help=('Full file path where to store data for node collector to pick up')
-        )
-        group.add_argument(
-            '-l',
-            '--listen',
-            dest='listen',
-            help='Listen host:port, i.e. 0.0.0.0:9417'
-        )
+        group.add_argument('-f', '--textfile-name', dest='textfile_name', help=('Full file path where to store data for node collector to pick up'))
+        group.add_argument('-l', '--listen', dest='listen', help='Listen host:port, i.e. 0.0.0.0:9417')
         parser.add_argument(
             '-i',
             '--interval',
             dest='interval',
             type=int,
             default=60,
-            help=(
-                'Number of seconds between updates of the textfile. Defaults 60 seconds.')
+            help=('Number of seconds between updates of the textfile. Defaults 60 seconds.'),
         )
         parser.add_argument(
-            '-1',
-            '--oneshot',
-            dest='oneshot',
-            action='store_true',
-            default=False,
-            help='Run only once and exit. Useful for running in a cronjob'
+            '-1', '--oneshot', dest='oneshot', action='store_true', default=False, help='Run only once and exit. Useful for running in a cronjob'
         )
-        parser.add_argument(
-            '-q',
-            '--quiet',
-            dest='quiet',
-            action='store_true',
-            default=False,
-            help='Silence any error messages and warnings'
-        )
-        parser.add_argument('-v', '--version', action='version',
-                            version='%(prog)s ' + __version__)
+        parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False, help='Silence any error messages and warnings')
+        parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
         arguments = parser.parse_args(args)
         if arguments.quiet:
             logging.getLogger().setLevel(100)
@@ -115,18 +92,15 @@ class PySMARTCollector(object):
                 description = 'PySMART metric ' + name
 
             if type == 'info':
-                gauges[name] = InfoMetricFamily(
-                    'pysmart', description, labels=labels.keys())
+                gauges[name] = InfoMetricFamily('pysmart', description, labels=labels.keys())
             elif type == 'state':
-                gauges[name] = StateSetMetricFamily(
-                    'pysmart_' + name, description, labels=labels.keys())
+                gauges[name] = StateSetMetricFamily('pysmart_' + name, description, labels=labels.keys())
             else:
-                gauges[name] = GaugeMetricFamily(
-                    'pysmart_' + name, description, labels=labels.keys())
+                gauges[name] = GaugeMetricFamily('pysmart_' + name, description, labels=labels.keys())
 
         for k in labels.keys():
             if labels[k] is None:
-                labels[k] = "N/A"
+                labels[k] = 'N/A'
 
         # Add values
         if type == 'info':
@@ -147,8 +121,7 @@ class PySMARTCollector(object):
 
         if 'megaraid,' in disk.interface:
             try:
-                common_labels['raid_id'] = re.match(
-                    '.*megaraid,(\d+)', disk.interface).groups()[0]
+                common_labels['raid_id'] = re.match('.*megaraid,(\d+)', disk.interface).groups()[0]
             except:
                 pass
 
@@ -168,25 +141,21 @@ class PySMARTCollector(object):
             'firmware': str(disk.firmware),
             'smart_capable': str(disk.smart_capable),
             'smart_enabled': str(disk.smart_enabled),
-            **common_labels
+            **common_labels,
         }
-        self.add_metric(gauges, disk, 'info', 1,
-                        labels=info_labels, type='info')
+        self.add_metric(gauges, disk, 'info', 1, labels=info_labels, type='info')
 
         # Assessment / Disk state
         if disk.assessment is not None:
-            self.add_metric(gauges, disk, 'assessment_passed',
-                            1 if disk.assessment == 'PASS' else 0, labels=common_labels)
+            self.add_metric(gauges, disk, 'assessment_passed', 1 if disk.assessment == 'PASS' else 0, labels=common_labels)
 
         # Temperature
         if disk.temperature is not None:
-            self.add_metric(gauges, disk, 'temperature',
-                            disk.temperature, labels=common_labels)
+            self.add_metric(gauges, disk, 'temperature', disk.temperature, labels=common_labels)
 
         # Size
         if disk.size is not None:
-            self.add_metric(gauges, disk, 'size',
-                            disk.size, labels=common_labels)
+            self.add_metric(gauges, disk, 'size', disk.size, labels=common_labels)
 
         #### Old Attributes ####
         for attribute in disk.attributes:
@@ -198,45 +167,29 @@ class PySMARTCollector(object):
                     'type': attribute.type,
                     'updated': attribute.updated,
                     'whenfailed': attribute.when_failed,
-                    **common_labels
+                    **common_labels,
                 }
 
-                self.add_metric(gauges, disk, 'attribute_value',
-                                attribute.value_int, labels=attribute_labels)
-                self.add_metric(gauges, disk, 'attribute_thresh',
-                                attribute.thresh, labels=attribute_labels)
-                self.add_metric(gauges, disk, 'attribute_worst',
-                                attribute.worst, labels=attribute_labels)
+                self.add_metric(gauges, disk, 'attribute_value', attribute.value_int, labels=attribute_labels)
+                self.add_metric(gauges, disk, 'attribute_thresh', attribute.thresh, labels=attribute_labels)
+                self.add_metric(gauges, disk, 'attribute_worst', attribute.worst, labels=attribute_labels)
                 if attribute.raw_int is not None:
-                    self.add_metric(gauges, disk, 'attribute_raw',
-                                    attribute.raw_int, labels=attribute_labels)
+                    self.add_metric(gauges, disk, 'attribute_raw', attribute.raw_int, labels=attribute_labels)
 
         #### New Attributes ####
         for diag in vars(disk.diagnostics):
-            diag_labels = {
-                **common_labels
-            }
+            diag_labels = {**common_labels}
 
             # Set to -1 if undefined/None
-            diag_value = -1 if getattr(disk.diagnostics, diag) is None else getattr(
-                disk.diagnostics, diag)
+            diag_value = -1 if getattr(disk.diagnostics, diag) is None else getattr(disk.diagnostics, diag)
 
-            self.add_metric(gauges, disk, 'diagnostics_' +
-                            diag, diag_value, labels=diag_labels)
+            self.add_metric(gauges, disk, 'diagnostics_' + diag, diag_value, labels=diag_labels)
 
         #### Tests ####
         # Supported test types
-        self.add_metric(gauges, disk, 'test_capabilities',
-                        disk.test_capabilities, labels=common_labels, type='state')
+        self.add_metric(gauges, disk, 'test_capabilities', disk.test_capabilities, labels=common_labels, type='state')
         for test in disk.tests:
-            test_labels = {
-                'num': str(test.num),
-                'hours': test.hours,
-                'type': test.type,
-                'status': test.status,
-                'LBA': test.LBA,
-                **common_labels
-            }
+            test_labels = {'num': str(test.num), 'hours': test.hours, 'type': test.type, 'status': test.status, 'LBA': test.LBA, **common_labels}
 
             if test.segment is not None:
                 test_labels['segment'] = test.segment
@@ -264,7 +217,6 @@ class PySMARTCollector(object):
             try:
                 self.update_pysmart_stats(disk, gauges)
             except Exception as e:
-                logging.exception(
-                    f"An error occurred while updating pysmart stats for {disk}")
+                logging.exception(f'An error occurred while updating pysmart stats for {disk}')
 
         return gauges.values()

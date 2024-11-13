@@ -6,8 +6,7 @@
 # License for more details.
 #
 ################################################################
-"""The pysmart_exporter main file
-"""
+"""The pysmart_exporter main file"""
 
 import prometheus_client
 from pysmart_exporter.collector import PySMARTCollector
@@ -28,16 +27,14 @@ def main():
 
     if args['listen']:
         (ip, port) = args['listen'].split(':')
-        prometheus_client.start_http_server(port=int(port),
-                                            addr=ip, registry=registry)
+        prometheus_client.start_http_server(port=int(port), addr=ip, registry=registry)
         while True:
             time.sleep(3600)
 
     if args['textfile_name']:
         while True:
             collector.collect()
-            prometheus_client.write_to_textfile(args['textfile_name'],
-                                                registry)
+            prometheus_client.write_to_textfile(args['textfile_name'], registry)
             if collector.args['oneshot']:
                 sys.exit(0)
             time.sleep(args.get('interval', 60))
