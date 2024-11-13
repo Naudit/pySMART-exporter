@@ -17,7 +17,7 @@ import re
 import sys
 from typing import Union
 
-from . import __version__
+from .version import __version__
 from pySMART import DeviceList, Device
 from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, StateSetMetricFamily
 
