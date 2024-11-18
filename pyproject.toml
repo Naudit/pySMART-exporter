@@ -1,0 +1,49 @@
+# Copyright (C) 2021 Rafael Leira
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+#
+################################################################
+
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "pysmart_exporter/version.py"
+local_scheme = "no-local-version"
+
+[project]
+name = "pySMART-exporter"
+description = "A Prometheus PySMART exporter"
+readme = "README.md"
+keywords = ["prometheus", "SMART", "exporter", "monitoring"]
+license = { text = "BSD-3-Clause" }
+dependencies = ["prometheus-client", "pySMART >=1.3.0"]
+dynamic = ["version"]
+authors = [{ name = "Rafael Leira", email = "rafael.leira@naudit.es" }]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+dev = ['pytest', 'pytest-cov', 'mypy', 'types-tabulate', 'types-six', 'pdoc']
+
+[project.urls]
+homepage = "https://repo1.naudit.es/theseus/pysmart-exporter"
+
+[project.entry-points."console_scripts"]
+pysmart_exporter = "pysmart_exporter.__main__:main"
