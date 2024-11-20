@@ -164,6 +164,19 @@ pysmart_test_capabilities{device="nvme0",interface="nvme",pysmart_test_capabilit
 
   ---
 
+## Installation
+
+``pySMART-exporter`` is available on PyPI and installable via ``pip``::
+
+    python -m pip install pySMART-exporter
+
+The only external (non-python) dependency is the ``smartctl`` component of the smartmontools package.  This should be pre-installed in most Linux distributions, or it can be obtained through your package manager.  Likely one of the following::
+
+    apt-get install smartmontools
+        or
+    yum install smartmontools
+
+
 ## License
 
 This program is distributed under the terms of the license specified in the [LICENSE](./LICENSE) file.
