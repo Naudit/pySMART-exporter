@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Rafael Leira
+# Copyright (C) 2021 Rafael Leira, Naudit HPCN S.L.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ import time
 import sys
 import subprocess
 import os
-
+import logging
 
 
 def main():
@@ -28,13 +28,13 @@ def main():
     registry.register(collector)
     args = collector.args
 
-    if args['sudo']:
-        if os.geteuid() != 0:
-            try:
-                subprocess.check_call(['sudo', sys.executable] + sys.argv)
-            except subprocess.CalledProcessError as e:
-                print(f'Failed to execute with sudo: {e}')
-            sys.exit(0)
+    if os.geteuid() != 0:
+        logging.error('Due to the privileges needed from Smartmontools, it should run as root.')
+        try:
+            subprocess.check_call(['sudo', sys.executable] + sys.argv)
+        except subprocess.CalledProcessError as e:
+            logging.error(f'Failed to execute with sudo: {e}')
+            sys.exit(e.returncode)
 
     if args['listen']:
         (ip, port) = args['listen'].split(':')

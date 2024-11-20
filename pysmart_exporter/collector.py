@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2021 Rafael Leira
+# Copyright (C) 2021 Rafael Leira, Naudit HPCN S.L.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -51,14 +51,6 @@ class PySMARTCollector(object):
             help=('Full file path where to store data for node collector to pick up'),
         )
         group.add_argument('-l', '--listen', dest='listen', help='Listen host:port, i.e. 0.0.0.0:9417')
-        parser.add_argument(
-            '-s',
-            '--sudo',
-            dest='sudo',
-            action='store_true',
-            default=False,
-            help='Run certain functions with superuser privileges using sudo',
-        )
         parser.add_argument(
             '-i',
             '--interval',
@@ -191,7 +183,8 @@ class PySMARTCollector(object):
 
         # Check for raid
 
-        metrics_included = self.args['metrics'].split(',') if self.args['metrics'] else []
+        metrics_included = [metric.strip() for metric in self.args['metrics'].split(',')] if self.args['metrics'] else []
+
         # Info
         # All label values should be strings, even if they are None.
         # Force them all through the str() call
@@ -355,8 +348,9 @@ class PySMARTCollector(object):
         uses this method to respond to http queries or save them to disk.
         """
         gauges = {}
-        include_devices = self.args['include'].split(',') if self.args['include'] else []
-        exclude_devices = self.args['exclude'].split(',') if self.args['exclude'] else []
+        include_devices = [device.strip() for device in self.args['include'].split(',')] if self.args['include'] else []
+        exclude_devices = [device.strip() for device in self.args['exclude'].split(',')] if self.args['exclude'] else []
+
 
         for disk in DeviceList():
             if include_devices and not (disk.name in include_devices or disk.dev_reference in include_devices):

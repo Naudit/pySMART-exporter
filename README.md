@@ -2,18 +2,13 @@
 # pySMART-exporter
 
 ![](https://img.shields.io/pypi/v/pySMART-exporter?label=release)
-
 ![](https://img.shields.io/pypi/pyversions/pySMART-exporter)
-
 ![](https://img.shields.io/github/workflow/status/Naudit/pySMART-exporter/Publish%20Python%20%F0%9F%90%8D%20distributions%20%F0%9F%93%A6%20to%20PyPI%20and%20TestPyPI)
-
 ![](https://img.shields.io/github/issues/Naudit/pySMART-exporter)
-
 ![](https://img.shields.io/github/issues-pr/Naudit/pySMART-exporter)
-
 ![](https://img.shields.io/pypi/dm/pysmart-exporter)
 
-Copyright (C) 2021 Rafael Leira
+Copyright (C) 2021 Rafael Leira, Naudit HPCN S.L.
 
 `pySMART-exporter` is a Python Prometheus exporter for collecting and exposing S.M.A.R.T. metrics of storage devices. It leverages the [pySMART library](https://github.com/truenas/py-SMART) and integrates Prometheus client library functionalities for HTTP publication or file-based metric exports.
 
@@ -22,9 +17,7 @@ Copyright (C) 2021 Rafael Leira
 ## Features
 
 - Collects S.M.A.R.T. metrics from storage devices.
-
 - Supports Prometheus integration via HTTP or text-based node collector files.
-
 - Includes support for various storage interfaces, including NVMe attributes and diagnostics.
 
 ---
@@ -34,21 +27,17 @@ Copyright (C) 2021 Rafael Leira
 The `pySMART-exporter` can be installed via PyPI:
 
 ```bash
-
 python -m pip install pySMART-exporter
-
 ```
 
 Ensure that `smartctl` from the `smartmontools` package is installed, as it is a prerequisite. For most Linux distributions, use your package manager:
 
 ```bash
-
 sudo apt-get install smartmontools
 
 # or
 
 sudo yum install smartmontools
-
 ```
 
 ---
@@ -62,9 +51,7 @@ The exporter supports two modes: **server mode** (HTTP) and **file mode** (node 
 To run the exporter in server mode, execute the following command:
 
 ```bash
-
 pysmart_exporter -l 0.0.0.0:9099
-
 ```
 
 Then configure Prometheus to scrape metrics from the endpoint.
@@ -74,17 +61,13 @@ Then configure Prometheus to scrape metrics from the endpoint.
 To generate a one-time metric file for use with a Prometheus node exporter:
 
 ```bash
-
 pysmart_exporter -f /path/to/output/file.txt -1
-
 ```
 
 To continuously generate metric files at a set interval (e.g., 60 seconds):
 
 ```bash
-
 pysmart_exporter -f /path/to/output/file.txt -i 60
-
 ```
 
 ---
@@ -94,37 +77,21 @@ pysmart_exporter -f /path/to/output/file.txt -i 60
 Below is a sample of the metrics exposed by `pySMART-exporter`:
 
 ```prometheus
-
 # HELP pysmart_info PySMART metric info
-
 # TYPE pysmart_info gauge
-
 pysmart_info{device="nvme0",firmware="ADHA0101",interface="nvme",model="KBG30ZMV256G TOSHIBA",rotation="None",serial="*********12P",size="256000000000",size_raw="256 GB",smart_capable="True",smart_enabled="True",ssd="True"} 1.0
-
 # HELP pysmart_assessment PySMART metric assessment
-
 # TYPE pysmart_assessment gauge
-
 pysmart_assessment{device="nvme0",interface="nvme",pysmart_assessment="PASS"} 1.0
-
 # HELP pysmart_temperature PySMART metric temperature
-
 # TYPE pysmart_temperature gauge
-
 pysmart_temperature{device="nvme0",interface="nvme"} 44.0
-
 # HELP pysmart_size PySMART metric size
-
 # TYPE pysmart_size gauge
-
 pysmart_size{device="nvme0",interface="nvme"} 2.56e+011
-
 # HELP pysmart_test_capabilities PySMART metric test_capabilities
-
 # TYPE pysmart_test_capabilities gauge
-
 pysmart_test_capabilities{device="nvme0",interface="nvme",pysmart_test_capabilities="short"} 1.0
-
 ```
 
 ---
