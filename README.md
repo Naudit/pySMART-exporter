@@ -44,7 +44,7 @@ sudo yum install smartmontools
 
 ## Usage
 
-The exporter supports two modes: **server mode** (HTTP) and **file mode** (node exporter textfile).
+The exporter supports two modes: **server mode** (HTTP) and **file mode** (node exporter textfile). It should run as a privileged user to access disk information.
 
 ### Server Mode
 
@@ -102,7 +102,6 @@ pysmart_test_capabilities{device="nvme0",interface="nvme",pysmart_test_capabilit
 |-----------------------|--------------------------------------------------------------------------------------------------|
 | `-f`, `--textfile-name` | Path to the file where metrics will be stored for node collection. |
 | `-l`, `--listen` | Host and port to listen on in HTTP server mode (e.g., `0.0.0.0:9417`). |
-| `-s`, `--sudo` | Run commands with `sudo` privileges. |
 | `-i`, `--interval` | Interval (in seconds) between metric updates. Default: `60`. |
 | `-1`, `--oneshot` | Run only once and exit (useful for cron jobs). |
 | `-q`, `--quiet` | Suppress error messages and warnings. |
