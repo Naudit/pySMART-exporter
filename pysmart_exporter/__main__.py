@@ -12,6 +12,9 @@ import prometheus_client
 from pysmart_exporter.collector import PySMARTCollector
 import time
 import sys
+import subprocess
+import os
+
 
 
 def main():
@@ -24,6 +27,14 @@ def main():
     registry = prometheus_client.CollectorRegistry()
     registry.register(collector)
     args = collector.args
+
+    if args['sudo']:
+        if os.geteuid() != 0:
+            try:
+                subprocess.check_call(['sudo', sys.executable] + sys.argv)
+            except subprocess.CalledProcessError as e:
+                print(f'Failed to execute with sudo: {e}')
+            sys.exit(0)
 
     if args['listen']:
         (ip, port) = args['listen'].split(':')

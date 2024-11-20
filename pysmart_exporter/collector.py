@@ -52,6 +52,14 @@ class PySMARTCollector(object):
         )
         group.add_argument('-l', '--listen', dest='listen', help='Listen host:port, i.e. 0.0.0.0:9417')
         parser.add_argument(
+            '-s',
+            '--sudo',
+            dest='sudo',
+            action='store_true',
+            default=False,
+            help='Run certain functions with superuser privileges using sudo',
+        )
+        parser.add_argument(
             '-i',
             '--interval',
             dest='interval',
@@ -76,6 +84,31 @@ class PySMARTCollector(object):
             help='Silence any error messages and warnings',
         )
         parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
+        parser.add_argument(
+            '--include',
+            dest='include',
+            type=str,
+            help='Comma-separated list of devices to include, e.g., nvme0/dev/sda,/dev/sdb',
+        )
+        parser.add_argument(
+            '--exclude',
+            dest='exclude',
+            type=str,
+            help='Comma-separated list of devices to exclude, e.g., nvme0/dev/sdc,/dev/sdd',
+        )
+        parser.add_argument(
+            '--metric-prefix',
+            dest='metric_prefix',
+            default='pysmart',
+            help='Custom prefix for exported metrics. Defaults to pysmart.',
+        )
+        parser.add_argument(
+            '--metrics',
+            dest='metrics',
+            type=str,
+            help='Comma-separated list of metrics to include (Info metrics will always be included), e.g., temperature,size,assessment_passed',
+        )
+
         arguments = parser.parse_args(args)
         if arguments.quiet:
             logging.getLogger().setLevel(100)
@@ -123,11 +156,11 @@ class PySMARTCollector(object):
                 description = 'PySMART metric ' + name
 
             if type == 'info':
-                gauges[name] = InfoMetricFamily('pysmart', description, labels=labels.keys())
+                gauges[name] = InfoMetricFamily(self.args['metric_prefix'], description, labels=labels.keys())
             elif type == 'state':
-                gauges[name] = StateSetMetricFamily('pysmart_' + name, description, labels=labels.keys())
+                gauges[name] = StateSetMetricFamily(self.args['metric_prefix'] + '_' + name, description, labels=labels.keys())
             else:
-                gauges[name] = GaugeMetricFamily('pysmart_' + name, description, labels=labels.keys())
+                gauges[name] = GaugeMetricFamily(self.args['metric_prefix'] + '_' + name, description, labels=labels.keys())
 
         for k in labels.keys():
             if labels[k] is None:
@@ -158,6 +191,7 @@ class PySMARTCollector(object):
 
         # Check for raid
 
+        metrics_included = self.args['metrics'].split(',') if self.args['metrics'] else []
         # Info
         # All label values should be strings, even if they are None.
         # Force them all through the str() call
@@ -181,7 +215,7 @@ class PySMARTCollector(object):
         self.add_metric(gauges, disk, 'info', 1, labels=info_labels, type='info')
 
         # Assessment / Disk state
-        if disk.assessment is not None:
+        if disk.assessment is not None and ('assessment_passed' in metrics_included or not metrics_included):
             self.add_metric(
                 gauges,
                 disk,
@@ -191,17 +225,19 @@ class PySMARTCollector(object):
             )
 
         # Temperature
-        if disk.temperature is not None:
+        if disk.temperature is not None and ('temperature' in metrics_included or not metrics_included):
             self.add_metric(gauges, disk, 'temperature', disk.temperature, labels=common_labels)
 
         # Size
-        if disk.size is not None:
+        if disk.size is not None and ('size' in metrics_included or not metrics_included):
             self.add_metric(gauges, disk, 'size', disk.size, labels=common_labels)
 
         if isinstance(disk.if_attributes, NvmeAttributes):
             #### New Nvme Attributes ####
             for attr_name, attribute in disk.if_attributes.__dict__.items():
                 # Ensure the attribute is not None and valid before proceeding
+                if metrics_included and attr_name not in metrics_included:
+                    continue
                 if isinstance(attribute, (int, float)):
                     attribute_labels = {
                         'name': attr_name,  # Attribute name
@@ -220,6 +256,8 @@ class PySMARTCollector(object):
             #### Old Attributes ####
             for attribute in disk.attributes:
                 if attribute is not None:
+                    if metrics_included and attribute.name not in metrics_included:
+                        continue
                     attribute_labels = {
                         'num': str(attribute.num),
                         'name': attribute.name,
@@ -262,6 +300,8 @@ class PySMARTCollector(object):
 
         #### New Attributes ####
         for diag in vars(disk.diagnostics):
+            if metrics_included and diag not in metrics_included:
+                continue
             diag_labels = {**common_labels}
 
             # Set to -1 if undefined/None
@@ -271,15 +311,20 @@ class PySMARTCollector(object):
 
         #### Tests ####
         # Supported test types
-        self.add_metric(
-            gauges,
-            disk,
-            'test_capabilities',
-            disk.test_capabilities,
-            labels=common_labels,
-            type='state',
-        )
+        if not metrics_included or (metrics_included and 'test_capabilities' in metrics_included):
+            self.add_metric(
+                gauges,
+                disk,
+                'test_capabilities',
+                disk.test_capabilities,
+                labels=common_labels,
+                type='state',
+            )
+
         for test in disk.tests:
+            if metrics_included and test.type not in metrics_included:
+                continue
+
             test_labels = {
                 'num': str(test.num),
                 'hours': str(test.hours),
@@ -310,8 +355,14 @@ class PySMARTCollector(object):
         uses this method to respond to http queries or save them to disk.
         """
         gauges = {}
+        include_devices = self.args['include'].split(',') if self.args['include'] else []
+        exclude_devices = self.args['exclude'].split(',') if self.args['exclude'] else []
 
         for disk in DeviceList():
+            if include_devices and not (disk.name in include_devices or disk.dev_reference in include_devices):
+                continue
+            if exclude_devices and (disk.name in exclude_devices or disk.dev_reference in exclude_devices):
+                continue
             try:
                 self.update_pysmart_stats(disk, gauges)
             except Exception as e:
