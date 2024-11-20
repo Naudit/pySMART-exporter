@@ -3,7 +3,7 @@
 
 ![](https://img.shields.io/pypi/v/pySMART-exporter?label=release)
 ![](https://img.shields.io/pypi/pyversions/pySMART-exporter)
-![](https://img.shields.io/github/workflow/status/Naudit/pySMART-exporter/Publish%20Python%20%F0%9F%90%8D%20distributions%20%F0%9F%93%A6%20to%20PyPI%20and%20TestPyPI)
+![](https://img.shields.io/github/actions/workflow/status/Naudit/pySMART-exporter/publish-to-pypi.yml)
 ![](https://img.shields.io/github/issues/Naudit/pySMART-exporter)
 ![](https://img.shields.io/github/issues-pr/Naudit/pySMART-exporter)
 ![](https://img.shields.io/pypi/dm/pysmart-exporter)
