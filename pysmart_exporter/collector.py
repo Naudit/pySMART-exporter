@@ -292,15 +292,16 @@ class PySMARTCollector(object):
                         )
 
         #### New Attributes ####
-        for diag in vars(disk.diagnostics):
-            if metrics_included and diag not in metrics_included:
-                continue
-            diag_labels = {**common_labels}
+        if disk.diagnostics:
+            for diag in vars(disk.diagnostics):
+                if metrics_included and diag not in metrics_included:
+                    continue
+                diag_labels = {**common_labels}
 
-            # Set to -1 if undefined/None
-            diag_value = -1 if getattr(disk.diagnostics, diag) is None else getattr(disk.diagnostics, diag)
+                # Set to -1 if undefined/None
+                diag_value = -1 if getattr(disk.diagnostics, diag) is None else getattr(disk.diagnostics, diag)
 
-            self.add_metric(gauges, disk, 'diagnostics_' + diag, diag_value, labels=diag_labels)
+                self.add_metric(gauges, disk, 'diagnostics_' + diag, diag_value, labels=diag_labels)
 
         #### Tests ####
         # Supported test types
@@ -350,7 +351,6 @@ class PySMARTCollector(object):
         gauges = {}
         include_devices = [device.strip() for device in self.args['include'].split(',')] if self.args['include'] else []
         exclude_devices = [device.strip() for device in self.args['exclude'].split(',')] if self.args['exclude'] else []
-
 
         for disk in DeviceList():
             if include_devices and not (disk.name in include_devices or disk.dev_reference in include_devices):
